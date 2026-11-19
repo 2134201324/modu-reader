@@ -1,0 +1,10 @@
+.secrets/
+__pycache__/
+*.pyc
+*.tmp
+.git/
+.gitignore
+# 运行态数据：镜像里只保留公版书与译文缓存，个人的图片/视频不进镜像
+data/uploads/
+data/staging/
+data/media/

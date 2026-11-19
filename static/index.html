@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>墨读 · 公版书库</title>
+<link rel="stylesheet" href="/static/style.css?v=20261118e">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand" id="brand">墨读</div>
+  <div class="search">
+    <input id="q" type="search" placeholder="搜书名、作者" autocomplete="off" spellcheck="false">
+    <span class="sk">⌘K</span>
+  </div>
+  <div class="meta" id="meta"></div>
+</header>
+
+<main id="shelf">
+  <section class="hbanner" id="hbanner" hidden>
+    <span id="hbInfo">隐藏书柜</span>
+    <button id="hbExit" type="button">退出</button>
+  </section>
+
+  <div class="hero" id="hero">
+    <h1>公版典籍 · 全本直读</h1>
+    <p>中文古籍与西方典籍，全本入库、按章切分、点开即读。中文由繁转简，西文保留原文；西典可切换中文或中英对照，文言古籍可切换白话或文白对照，未预置译文的章节由 AI 实时生成。手边的纯文本也可以直接导入书库。</p>
+  </div>
+
+  <nav class="cats" id="cats"></nav>
+
+  <section id="recent" hidden>
+    <div class="rlabel">继续阅读</div>
+    <div class="rlist" id="recentList"></div>
+  </section>
+  <div class="tools">
+    <div class="tleft">
+      <button class="impBtn" id="impBtn">＋ 导入书籍</button>
+      <button class="selBtn" id="selBtn" title="多选批量删除">选择</button>
+      <div class="chips" id="sort">
+        <button data-sort="chars" class="on">按篇幅</button>
+        <button data-sort="title">按书名</button>
+        <button data-sort="author">按作者</button>
+      </div>
+    </div>
+    <div class="count" id="count"></div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>没有匹配的书。</div>
+</main>
+
+<div class="selbar" id="selbar" hidden>
+  <span class="sinfo" id="selInfo">已选 0 本</span>
+  <div class="sacts">
+    <button type="button" id="selAll">全选</button>
+    <button type="button" id="selInv">反选</button>
+    <button type="button" id="selCancel">取消</button>
+    <button type="button" id="selDel" class="danger">删除</button>
+  </div>
+</div>
+
+<section id="reader" hidden>
+  <div class="rtop">
+    <button class="icon" id="back" title="返回书架">←</button>
+    <div class="rtitle"><b id="btitle"></b><span id="bauthor"></span></div>
+    <button class="icon sm" id="delBtn" title="彻底删除这本书（不可恢复）" hidden>删</button>
+    <button class="icon" id="tocBtn" title="目录">☰</button>
+  </div>
+
+  <div class="rbar">
+    <button class="icon sm" id="fontMinus" title="缩小字号">A-</button>
+    <button class="icon sm" id="fontPlus" title="放大字号">A+</button>
+    <div class="cnmodes" id="cnModes" hidden>
+      <button data-cn="en" class="on">英文</button>
+      <button data-cn="cn">中文</button>
+      <button data-cn="bi">双语</button>
+    </div>
+    <button class="icon sm wide" id="themeBtn" title="切换夜间模式">夜间</button>
+    <div class="prog"><i id="progFill"></i></div>
+    <span class="pnum" id="pnum"></span>
+  </div>
+
+  <div class="stage">
+    <aside class="toc" id="toc"><div class="tocHead">目录</div><div class="tocList" id="tocList"></div></aside>
+    <div class="pwrap">
+      <article class="paper">
+        <h2 id="ctitle"></h2>
+        <div class="txbar" id="txbar" hidden></div>
+        <div id="text" class="text"></div>
+        <nav class="pager">
+          <button id="prevCh" title="上一回（A / ←）">← 上一回</button>
+          <button id="nextCh" title="下一回（D / →）">下一回 →</button>
+        </nav>
+      </article>
+      <div class="flips">
+        <button type="button" class="flip fl" id="flipPrev" tabindex="-1"
+                aria-label="上一页" title="上一页（也可按 W / ↑）">‹</button>
+        <button type="button" class="flip fr" id="flipNext" tabindex="-1"
+                aria-label="下一页" title="下一页（也可按 S / ↓）">›</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal" id="impModal" hidden>
+  <div class="mask" data-close></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="impHead">
+    <div class="ph"><b id="impHead">导入书籍</b><button class="icon sm" data-close title="关闭">✕</button></div>
+    <div class="pbody">
+      <div class="frow">
+        <label class="fld"><span>书名</span><input id="impTitle" maxlength="120" placeholder="留空则用文件名"></label>
+        <label class="fld"><span>作者</span><input id="impAuthor" maxlength="120" placeholder="可留空"></label>
+      </div>
+      <label class="fld"><span>分类</span>
+        <select id="impCat">
+          <option>其他</option><option>小说</option><option>历史</option><option>哲学</option>
+          <option>诗文</option><option>社科</option><option>科学</option><option>戏曲</option>
+          <option>蒙学</option><option>文学</option>
+        </select>
+      </label>
+      <div class="drop" id="impDrop" tabindex="0">
+        <input type="file" id="impFile" accept=".txt,.md,.text,text/plain,image/*,.zip,application/zip,application/x-zip-compressed,.mp4,.m4v,.webm,.ogv,.mov,.mkv,.avi,video/*" multiple hidden>
+        <input type="file" id="impDir" webkitdirectory directory multiple hidden>
+        <p><b>把 .txt / .md、整批图片或视频拖到这里</b>，或 <span class="lnk">选择文件</span><span id="impDirWrap"> / <span class="lnk" id="impPickDir">整个文件夹</span></span> / <span class="lnk" id="impPickZip">ZIP 压缩包</span></p>
+        <p class="hint" id="impDropHint">文本入库成书，图片入库成漫画，可一次混选；视频单独一本，支持断点续传；也可以 <kbd>Ctrl</kbd>+<kbd>V</kbd> 粘贴截图</p>
+      </div>
+
+      <p class="fname" id="impFname" hidden></p>
+
+      <div id="impStage" hidden>
+        <div class="stgbar">
+          <span id="impSummary"></span>
+          <label class="sortsel">排序
+            <select id="impSort">
+              <option value="name">文件名</option>
+              <option value="time-asc">时间 旧→新</option>
+              <option value="time-desc">时间 新→旧</option>
+              <option value="manual">手动拖动</option>
+            </select>
+          </label>
+        </div>
+        <div class="imgprev" id="imgPrev"></div>
+        <p class="hint sthint" id="imgHint">拖动缩略图可调整页序，点右上角 ✕ 移除</p>
+      </div>
+
+      <textarea id="impText" placeholder="也可以直接粘贴正文…" spellcheck="false"></textarea>
+      <label class="chk" id="impHiddenRow" hidden>
+        <input type="checkbox" id="impHidden"> 放入隐藏书柜（不在公开书架显示）
+      </label>
+    </div>
+    <div class="impmsg" id="impMsg"></div>
+    <div class="pfoot">
+      <button class="ghost" data-close>取消</button>
+      <button class="primary" id="impGo">导入并阅读</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js?v=20261118e"></script>
+</body>
+</html>
